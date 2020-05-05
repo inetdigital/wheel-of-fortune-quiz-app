@@ -5,11 +5,13 @@ import Head from 'components/head';
 import Header from 'components/header';
 import GlobalStyle from 'global.css.js';
 
+import CssBaseline from '@material-ui/core/CssBaseline';
+
 const Layout = ({ data, children }) => (
   <div>
     <GlobalStyle />
+    <CssBaseline />
     <Head />
-    <Header title={data.site.siteMetadata.siteTitle} />
     {children}
   </div>
 );

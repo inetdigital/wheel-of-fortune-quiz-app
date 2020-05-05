@@ -1,62 +1,70 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Layout from 'components/layout';
-import Box from 'components/box';
-import Title from 'components/title';
-import Gallery from 'components/gallery';
-import IOExample from 'components/io-example';
-import Modal from 'containers/modal';
-import { graphql } from 'gatsby';
 
-const Index = ({ data }) => (
-  <Layout>
-    <Box>
-      <Title as="h2" size="large">
-        {data.homeJson.content.childMarkdownRemark.rawMarkdownBody}
-      </Title>
-      <Modal>
-        <video
-          src="https://i.imgur.com/gzFqNSW.mp4"
-          playsInline
-          loop
-          autoPlay
-          muted
-        />
-      </Modal>
-    </Box>
-    <Gallery items={data.homeJson.gallery} />
-    <div style={{ height: '50vh' }} />
-    <IOExample />
-  </Layout>
-);
+import Wheel from 'components/wheel';
+import Question from 'components/question';
 
-Index.propTypes = {
-  data: PropTypes.object.isRequired,
-};
+import categories from 'containers/categories.js';
 
-export default Index;
-
-export const query = graphql`
-  query HomepageQuery {
-    homeJson {
-      title
-      content {
-        childMarkdownRemark {
-          html
-          rawMarkdownBody
-        }
-      }
-      gallery {
-        title
-        copy
-        image {
-          childImageSharp {
-            fluid(maxHeight: 500, quality: 90) {
-              ...GatsbyImageSharpFluid_withWebp
-            }
-          }
-        }
-      }
-    }
+export default class Index extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      questionWrapperClass: 'transparent',
+      selectedItem: null,
+      selectedQuestionAnswer: {
+        question: null,
+        answer: null,
+      },
+    };
   }
-`;
+
+  reset() {
+    this.setState({
+      selectedItem: null,
+      selectedQuestionAnswer: {
+        question: null,
+        answer: null,
+      },
+      wheelPosition: 'center',
+    });
+  }
+
+  complete(id) {
+    const selectedItemQuestion = Math.floor(
+      Math.random() * categories[id].questions.length
+    );
+    setTimeout(() => {
+      this.setState({
+        questionWrapperClass: 'opaque',
+        selectedItem: id,
+        selectedQuestionAnswer: {
+          question: categories[id].questions[selectedItemQuestion].q,
+          answer: categories[id].questions[selectedItemQuestion].a,
+        },
+      });
+    }, 12000);
+  }
+
+  render() {
+    const { questionWrapperClass } = this.state;
+    return (
+      <Layout>
+        <Wheel
+          items={categories}
+          containerClass={this.state.wheelPosition}
+          onSelectItem={this.complete.bind(this)}
+          reset={this.reset.bind(this)}
+        />
+        <div className={`question-wrapper ${questionWrapperClass}`}>
+          <Question
+            questionWrapperClass={this.state.questionWrapperClass}
+            selectedItem={this.state.selectedItem}
+            questionAndAnswer={this.state.selectedQuestionAnswer}
+            items={categories}
+          />
+        </div>
+      </Layout>
+    );
+  }
+}

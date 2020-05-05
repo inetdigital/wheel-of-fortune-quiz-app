@@ -1,0 +1,5 @@
+backend:
+    name: github
+    repo: inetdigital/wheel-of-fortune-quiz-app
+media_folder: static/assets
+public_folder: /assets
