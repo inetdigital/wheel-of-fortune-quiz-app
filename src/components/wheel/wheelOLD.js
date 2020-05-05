@@ -8,7 +8,6 @@ export default class Wheel extends React.Component {
     super(props);
     this.state = {
       selectedItem: null,
-      revealAnswer: false,
       spinning: false,
     };
     this.selectItem = this.selectItem.bind(this);

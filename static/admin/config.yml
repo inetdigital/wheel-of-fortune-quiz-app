@@ -3,3 +3,18 @@ backend:
     repo: inetdigital/wheel-of-fortune-quiz-app
 media_folder: static/assets
 public_folder: /assets
+collections:
+    - name: categories
+      label: Category
+      folder: content/categories
+      create: true
+      fields:
+        - { name: title, label: Title }   
+    - name: question
+      label: Question
+      folder: content/questions
+      create: true
+      fields:
+        - { name: question_field, label: Question, widget: string }
+        - { name: answer_field, label: Answer, widget: string }
+        - { name: relation, widget: relation, collection: categories, searchFields: ["title"], valueField: "title" }
