@@ -1,161 +1,129 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { CountdownCircleTimer } from 'react-countdown-circle-timer';
+import React, { useState, useEffect } from 'react';
+import { useStaticQuery, graphql } from 'gatsby';
+
+import CounterTime from 'components/counter';
 
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 
-class Question extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      timerIsPlaying: false,
-      timerDuration: 5,
-      timerFinished: false,
-      questionAndAnswer: this.props.questionAndAnswer,
-      selectedItem: this.props.selectedItem,
-      revealAnswer: false,
-    };
-  }
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.questionAndAnswer !== this.props.questionAndAnswer) {
-      this.setState({
-        questionAndAnswer: this.props.questionAndAnswer,
-      });
+function Question(props) {
+  const data = useStaticQuery(graphql`
+    query QuestionsQuery {
+      allMarkdownRemark(
+        filter: { fileAbsolutePath: { regex: "/questions/" } }
+      ) {
+        totalCount
+        edges {
+          node {
+            frontmatter {
+              question_field
+              answer_field
+              relation
+            }
+          }
+        }
+      }
     }
-    if (prevProps.selectedItem !== this.props.selectedItem) {
-      this.setState({
-        selectedItem: this.props.selectedItem,
-      });
+  `);
+
+  const [timerFinished, setTimerFinished] = useState(false);
+  const [revealAnswer, setRevealAnswer] = useState(false);
+  const [title, setTitle] = useState(null);
+  const [question, setQuestion] = useState(null);
+  const [answer, setAnswer] = useState(null);
+
+  function revealAnswerUpdate() {
+    setRevealAnswer(true);
+  }
+
+  function reset() {
+    props.reset();
+    setTimerFinished(false);
+    setRevealAnswer(false);
+  }
+
+  function completeTimer() {
+    setTimerFinished(true);
+  }
+
+  useEffect(() => {
+    if (props.selectedCategoryTitle) {
+      const newObej = data.allMarkdownRemark.edges.filter(
+        questionsInCat =>
+          questionsInCat.node.frontmatter.relation ==
+          props.selectedCategoryTitle
+      );
+
+      const selectedQuestionItem = Math.floor(Math.random() * newObej.length);
+      setTitle(props.selectedCategoryTitle);
+      setQuestion(
+        newObej[selectedQuestionItem].node.frontmatter.question_field
+      );
+      setAnswer(newObej[selectedQuestionItem].node.frontmatter.answer_field);
     }
-  }
+  }, [props.selectedCategoryTitle]);
 
-  startTimer() {
-    this.setState({
-      timerIsPlaying: true,
-    });
-  }
-
-  revealAnswer() {
-    this.setState({
-      revealAnswer: true,
-    });
-  }
-
-  reset() {
-    this.props.reset();
-    this.setState({
-      timerIsPlaying: false,
-      timerFinished: false,
-      selectedItem: null,
-      revealAnswer: false,
-    });
-  }
-
-  render() {
-    const { items } = this.props;
-    const { selectedItem } = this.state;
-    return (
-      <div className="question-inner">
-        {selectedItem && (
-          <React.Fragment>
-            <div className="counter-wrapper">
-              <CountdownCircleTimer
-                isPlaying={this.state.timerIsPlaying}
-                duration={this.state.timerDuration}
-                colors={[['#004777', 0.33], ['#F7B801', 0.33], ['#A30000']]}
-                size={150}
-                strokeWidth={6}
-                onComplete={() => {
-                  this.setState({
-                    timerFinished: true,
-                  });
-                }}
-              >
-                {({ remainingTime }) =>
-                  remainingTime == this.state.timerDuration ? (
-                    <Button
-                      variant="outlined"
-                      className="start-timer"
-                      onClick={this.startTimer.bind(this)}
-                    >
-                      <Typography component="div">
-                        <Box fontSize="h6.fontSize">Start Timer</Box>
-                      </Typography>
-                    </Button>
-                  ) : (
-                    <React.Fragment>
-                      {remainingTime > 0 ? (
-                        <Typography component="div">
-                          <Box fontSize="h6.fontSize">{remainingTime}</Box>
-                        </Typography>
-                      ) : (
-                        <Typography component="div">
-                          <Box fontSize="h6.fontSize">Times up!</Box>
-                        </Typography>
-                      )}
-                    </React.Fragment>
-                  )
-                }
-              </CountdownCircleTimer>
-            </div>
-            <div className="question">
+  return (
+    <div className="question-inner">
+      {question && answer && title && (
+        <React.Fragment>
+          <div className="counter-wrapper">
+            <CounterTime complete={completeTimer} />
+          </div>
+          <div className="question">
+            <Box mb={4}>
               <Typography component="div">
                 <Box fontSize="h4.fontSize" m={1}>
-                  {items[selectedItem].name}
+                  {title}
                 </Box>
               </Typography>
-              <p>
-                <span>Q.</span> {this.state.questionAndAnswer.question}
-              </p>
-              {this.state.timerFinished && !this.state.revealAnswer && (
+            </Box>
+            <p>
+              <span>Q.</span> {question}
+            </p>
+            {timerFinished && !revealAnswer && (
+              <Box mt={3} pt={3}>
+                <Button
+                  className="reveal-answer"
+                  variant="contained"
+                  color="primary"
+                  disableElevation
+                  onClick={revealAnswerUpdate}
+                >
+                  <Typography component="div">
+                    <Box fontSize="h4.fontSize">Reveal Answer</Box>
+                  </Typography>
+                </Button>
+              </Box>
+            )}
+            <div className={`answer ${!revealAnswer ? 'hidden' : 'visible'}`}>
+              {revealAnswer && (
                 <div>
-                  <Button
-                    className="reveal-answer"
-                    variant="contained"
-                    color="primary"
-                    disableElevation
-                    onClick={this.revealAnswer.bind(this)}
-                  >
-                    <Typography component="div">
-                      <Box fontSize="h6.fontSize">And the answer is?</Box>
-                    </Typography>
-                  </Button>
+                  <p>
+                    <span>A.</span> {answer}
+                  </p>
+                  <Box mt={3} pt={3}>
+                    <Button
+                      className="reveal-answer"
+                      variant="contained"
+                      color="primary"
+                      disableElevation
+                      onClick={reset}
+                    >
+                      <Typography component="div">
+                        <Box fontSize="h4.fontSize">New Question</Box>
+                      </Typography>
+                    </Button>
+                  </Box>
                 </div>
               )}
-              <div
-                className={`answer ${
-                  !this.state.revealAnswer ? 'hidden' : 'visible'
-                }`}
-              >
-                {this.state.revealAnswer && (
-                  <div>
-                    <p>
-                      <span>A.</span> {this.state.questionAndAnswer.answer}
-                    </p>
-                    <div>
-                      <button onClick={this.reset.bind(this)}>Reset</button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
-          </React.Fragment>
-        )}
-      </div>
-    );
-  }
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
 }
-
-Question.propTypes = {
-  questionWrapperClass: PropTypes.string,
-  questionAndAnswer: PropTypes.object,
-  selectedItem: PropTypes.number,
-  items: PropTypes.array,
-  onSelectItem: PropTypes.func,
-  reset: PropTypes.func,
-};
 
 export default Question;

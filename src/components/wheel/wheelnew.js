@@ -5,7 +5,7 @@ import './wheel.css';
 
 function WheelNew(props) {
   const data = useStaticQuery(graphql`
-    query QuestionsQuery {
+    query CategoriesQuery {
       allMarkdownRemark(
         filter: { fileAbsolutePath: { regex: "/categories/" } }
       ) {
@@ -24,32 +24,44 @@ function WheelNew(props) {
   const [selectedItem, setSelectedItem] = useState(null);
   const [spinning, setSpinning] = useState(false);
 
-  const selectItem = () => {
+  function selectItem() {
     if (spinning === false) {
       setSpinning(true);
     }
-  };
+  }
 
   useEffect(() => {
-    if (selectedItem === null) {
-      const selectedItem = Math.floor(
-        Math.random() * data.allMarkdownRemark.totalCount
-      );
-      setSelectedItem(selectedItem);
-      if (props.onSelectItem) {
-        props.onSelectItem(selectedItem);
+    if (spinning === true) {
+      if (selectedItem === null) {
+        const selectedItem = Math.floor(
+          Math.random() * data.allMarkdownRemark.totalCount
+        );
+        setSelectedItem(selectedItem);
+        if (props.onSelectItem) {
+          props.onSelectItem(
+            selectedItem,
+            data.allMarkdownRemark.edges[selectedItem].node.frontmatter.title
+          );
+        }
+      } else {
+        setSelectedItem(null);
+        setTimeout(selectItem, 500);
       }
-    } else {
-      setSelectedItem(null);
-      setTimeout(selectItem, 500);
     }
   }, [spinning]);
+
+  useEffect(() => {
+    if (props.resetWheel === true) {
+      setSelectedItem(null);
+      setSpinning(false);
+    }
+  }, [props.resetWheel]);
 
   const wheelVars = {
     '--nb-item': data.allMarkdownRemark.totalCount,
     '--selected-item': selectedItem,
   };
-
+  const isSpinning = selectedItem !== null ? 'spinning' : '';
   return (
     <div className="outer-container">
       <div className="wheel-container">
@@ -57,7 +69,7 @@ function WheelNew(props) {
           <button onClick={selectItem}>Spin</button>
         </div>
         <div
-          className={`wheel ${spinning}`}
+          className={`wheel ${isSpinning}`}
           style={wheelVars}
           onClick={selectItem}
           onKeyDown={selectItem}
@@ -66,7 +78,7 @@ function WheelNew(props) {
         >
           {data.allMarkdownRemark.edges.map((item, i) => (
             <div
-              className={`wheel-item item-${i}`}
+              className={`wheel-item item-${i} nb-item-${data.allMarkdownRemark.totalCount}`}
               key={i}
               style={{ '--item-nb': i }}
             >
