@@ -92,4 +92,7 @@ export default createGlobalStyle`
   p {
     margin-bottom: 2rem;
   }
+  .w-100 {
+    width: 100%;
+  }
 `;
