@@ -1,6 +1,7 @@
 .outer-container {
   display: flex;
   justify-content: center;
+  align-items: center;
   min-height: 100vh;
 }
 
@@ -32,6 +33,12 @@
   transition: all 1s ease-in-out;
   transform: translateX(0%);
   z-index: 2;
+}
+
+@media only screen and (max-width: 750px) {
+  .wheel-container {
+    --wheel-size: 95vw !important;
+  }
 }
 
 .wheel-container.center {
@@ -154,6 +161,12 @@
   border: solid transparent calc(var(--slice-width) / 2);
   border-left: solid transparent 0;
   border-right: solid red calc(var(--wheel-size) / 2);
+}
+
+@media only screen and (max-width: 750px) {
+  .wheel-item::before {
+    --wheel-size: 95vw !important;
+  }
 }
 
 .wheel-item.nb-item-1::before {
