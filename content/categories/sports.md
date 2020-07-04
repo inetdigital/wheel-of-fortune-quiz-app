@@ -1,3 +1,3 @@
 ---
-title: Sports
+title: Sports and Leisure
 ---
