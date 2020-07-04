@@ -1,3 +1,3 @@
 ---
-title: Film & TV
+title: Arts and Literature
 ---
